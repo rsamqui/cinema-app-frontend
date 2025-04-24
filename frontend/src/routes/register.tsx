@@ -1,9 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Visibility, VisibilityOff } from "@mui/icons-material"
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
 import {
   Alert,
   Button,
@@ -13,52 +13,58 @@ import {
   Paper,
   TextField,
   Typography,
-} from "@mui/material"
-import { setToken } from "../utils/auth"
-import type { SubmitHandler } from "react-hook-form";
+} from '@mui/material'
+import { setToken } from '../utils/auth'
+import type { SubmitHandler } from 'react-hook-form'
 
-const loginSchema = z.object({
+const registerSchema = z.object({
+  name: z.string().min(1, { message: 'Name is required' }),
   email: z
     .string()
-    .min(1, { message: "Email is required" })
-    .email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
+    .min(1, { message: 'Email is required' })
+    .email({ message: 'Invalid email address' }),
+  password: z.string().min(1, { message: 'Password is required' }),
+  confirmPassword: z
+    .string()
+    .min(1, { message: 'Please confirm your password' }),
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type RegisterFormData = z.infer<typeof registerSchema>
 
-export const Route = createFileRoute("/login")({
-  component: LoginPage,
+export const Route = createFileRoute('/register')({
+  component: RegisterPage,
 })
 
-function LoginPage() {
+function RegisterPage() {
   const [isApiLoading, setIsApiLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate() // Use navigate for redirection after login
 
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   })
 
-  const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
+  const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
     setIsApiLoading(true)
     setApiError(null)
 
     try {
       console.log(data)
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       })
@@ -66,15 +72,15 @@ function LoginPage() {
       const responseData = await response.json()
 
       if (!response.ok) {
-        throw new Error(responseData.error || "Login failed")
+        throw new Error(responseData.error || "Registration failed")
       }
 
       setToken(responseData.token)
-      console.log("Login successful")
-      navigate({ to: "/" })
+      console.log("Register successful")
+      navigate({ to: "/login" })
     } catch (err) {
       setApiError(
-        err instanceof Error ? err.message : "An error occurred during login",
+        err instanceof Error ? err.message : "An error occurred during registration",
       )
     } finally {
       setIsApiLoading(false)
@@ -90,7 +96,7 @@ function LoginPage() {
             component="h1"
             className="text-center font-bold"
           >
-            Sign In
+            Register
           </Typography>
 
           {/* Display API errors */}
@@ -100,7 +106,27 @@ function LoginPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-4 mt-4"
+          >
+            <Controller
+              name="name"
+              control={control}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  {...field}
+                  label="Name"
+                  type="name"
+                  fullWidth
+                  variant="outlined"
+                  error={!!error}
+                  helperText={error?.message} // Display validation error message
+                  className="mb-6"
+                />
+              )}
+            />
+
             <Controller
               name="email"
               control={control}
@@ -125,7 +151,7 @@ function LoginPage() {
                 <TextField
                   {...field}
                   label="Password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   fullWidth
                   variant="outlined"
                   error={!!error}
@@ -146,6 +172,34 @@ function LoginPage() {
               )}
             />
 
+            <Controller
+              name="confirmPassword"
+              control={control}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  {...field}
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  fullWidth
+                  variant="outlined"
+                  error={!!error}
+                  helperText={error?.message}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          edge="end"
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
+
             <Button
               type="submit"
               variant="contained"
@@ -157,13 +211,13 @@ function LoginPage() {
               {isSubmitting || isApiLoading ? (
                 <CircularProgress size={24} />
               ) : (
-                "Sign In"
+                'Sign In'
               )}
             </Button>
           </form>
 
           <Typography variant="body2" className="text-center mt-6">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
               Sign up
             </span>

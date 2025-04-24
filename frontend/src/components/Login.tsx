@@ -31,7 +31,7 @@ export default function Login({ onLogin, isLoading = false, error = null }: Logi
   }
 
   return (
-    <Paper elevation={3} className="w-full max-w-md p-8 mx-auto">
+    <Paper elevation={3} className="w-full max-w-md p-8 mx-auto flex flex-col gap-4">
       <Typography variant="h5" component="h1" className="text-center mb-6 font-bold">
         Sign In
       </Typography>
