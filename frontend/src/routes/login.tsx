@@ -12,12 +12,11 @@ function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
+  const handleLogin = async (email: string, password: string) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // Call the login API
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -32,12 +31,7 @@ function LoginPage() {
         throw new Error(data.error || "Login failed")
       }
 
-      // Store the JWT token
       setToken(data.token)
-
-      // Redirect to dashboard or home page
-      // For TanStack Router, you would use:
-      // router.navigate({ to: '/dashboard' })
 
       console.log("Login successful")
     } catch (err) {
